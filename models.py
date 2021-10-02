@@ -42,11 +42,11 @@ def DiscriminatorTwo():
 
 def GeneratorZero():
   noise = tf.keras.Input((32,32,1));
-  gaussian = tf.keras.Input((32,32,2));
+  gaussian = tf.keras.Input((32,32,3));
   results = tf.keras.layers.Concatenate(axis = -1)([gaussian, noise]);
   results = tf.keras.layers.Conv2D(128, kernel_size = (3,3), padding = 'same', activation = tf.keras.activations.relu)(results);
   results = tf.keras.layers.BatchNormalization()(results);
-  results = tf.keras.layers.Conv2D(128, kernel_size = (3,3), padding = 'same', activaiton = tf.keras.activations.relu)(results);
+  results = tf.keras.layers.Conv2D(128, kernel_size = (3,3), padding = 'same', activation = tf.keras.activations.relu)(results);
   results = tf.keras.layers.BatchNormalization()(results);
   laplacian = tf.keras.layers.Conv2D(3, kernel_size = (3,3), padding = 'same')(results);
   return tf.keras.Model(inputs = (noise, gaussian), outputs = laplacian);
@@ -64,7 +64,7 @@ def GeneratorOne():
 
 def GeneratorTwo():
   noise = tf.keras.Input((100,));
-  results = tf.keras.layers.Dense(1200, activation = tf.keras.activations.relu)(results);
+  results = tf.keras.layers.Dense(1200, activation = tf.keras.activations.relu)(noise);
   results = tf.keras.layers.Dense(1200, activation = tf.keras.activations.sigmoid)(results);
   results = tf.keras.layers.Dense(8*8*3)(results);
   results = tf.keras.layers.Reshape((8,8,3))(results);
