@@ -94,11 +94,33 @@ def PyrUp(channels):
   return tf.keras.Model(inputs = inputs, outputs = gaussian);
 
 def Trainer():
-  noise2 = tf.keras.Input((100,));
-  noise1 = tf.keras.Input((16,16,1));
-  noise0 = tf.keras.Input((32,32,1));
-  sample0 = GeneratorTwo()(noise2);
-#  sample1 = 
+  real_gaussian2 = tf.keras.Input((8,8,3)); # real_gaussian2.shape = (batch, 8, 8, 3)
+  real_gaussian1 = tf.keras.Input((16,16,3)); # real_gaussian1.shape = (batch, 16, 16, 3)
+  real_gaussian0 = tf.keras.Input((32,32,3)); # real_gaussian0.shape = (batch, 32, 32, 3)
+  real_laplacian2 = tf.keras.Input((8,8,3)); # real_laplacian2.shape = (batch, 8, 8, 3)
+  real_laplacian1 = tf.keras.Input((16,16,3)); # real_laplacian1.shape = (batch, 16, 16, 3)
+  real_laplacian0 = tf.keras.Input((32,32,3)); # real_laplacian0.shape = (batch, 32, 32, 3)
+  noise2 = tf.keras.layers.Lambda(lambda x: tf.random.normal(shape = (tf.shape(x)[0], 100,), stddev = 0.1))(real_gaussian2);
+  noise1 = tf.keras.layers.Lambda(lambda x: tf.random.normal(shape = (tf.shape(x)[0], 16,16,1), stddev = 0.1))(real_gassian1);
+  noise0 = tf.keras.layers.Lambda(lambda x: tf.random.normal(shape = (tf.shape(x)[0], 32,32,1), stddev = 0.1))(real_gaussian0);
+  fake_gaussian2 = GeneratorTwo()(noise2); # fake_gaussian2.shape = (batch, 8, 8, 3)
+  fake_laplacian1 = GeneratorOne()([noise1, real_gaussian1]); # fake_laplacian1.shape = (batch, 16, 16, 3)
+  fake_laplacian0 = GeneratorZero()([noise0, real_gaussian0]); # fake_laplacian0.shape = (batch, 32, 32, 3)
+  gaussian2 = tf.keras.layers.Concatenate(axis = 0)([real_gaussian2, fake_gaussian2]); # gaussian2.shape = (batch * 2, 8, 8, 3)
+  gaussian1 = tf.keras.layers.Concatenate(axis = 0)([real_gaussian1, real_gaussian1]); # gaussian1.shape = (batch * 2, 8, 8, 3)
+  laplacian1 = tf.keras.layers.Concatenate(axis = 0)([real_laplacian1, fake_laplacian1]); # laplacian1.shape = (batch * 2, 16, 16, 3)
+  gaussian0 = tf.keras.layers.Concatenate(axis = 0)([real_gaussian0, real_gaussian0]); # gaussian0.shape = (batch * 2, 16, 16, 3)
+  laplacian0 = tf.keras.layers.Concatenate(axis = 0)([real_laplacian0, fake_laplacian0]); # laplacian0.shape = (batch * 2, 32, 32, 3)
+  disc2 = DiscriminatorTwo()([gaussian2]); # disc2.shape = (batch * 2, 1)
+  disc1 = DiscriminatorOne()([laplacian1, gaussian1]); # disc1.shape = (batch * 2, 1)
+  disc0 = DiscriminatorZero()([laplacian0, gaussian0]); # disc0.shape = (batch * 2, 1)
+  loss2 = tf.keras.layers.Lambda(lambda x: tf.keras.losses.BinaryCrossentropy(from_logits = False)(tf.ones_like(x[0][:tf.shape(x[1])[0],...]), x[0][:tf.shape(x[1])[0],...]) + \
+                                           tf.keras.losses.BinaryCrossentropy(from_logits = False)(tf.zeros_like(x[0][tf.shape(x[1])[0]:,...]), x[0][tf.shape(x[1])[0]:,...]))([disc2, real_gaussian2]);
+  loss1 = tf.keras.layers.Lambda(lambda x: tf.keras.losses.BinaryCrossentropy(from_logits = False)(tf.ones_like(x[0][:tf.shape(x[1])[0],...]), x[0][:tf.shape(x[1])[0],...]) + \
+                                           tf.keras.losses.BinaryCrossentropy(from_logits = False)(tf.zeros_like(x[0][tf.shape(x[1])[0]:,...]), x[0][tf.shape(x[1])[0]:,...]))([disc1, real_gaussian1]);
+  loss0 = tf.keras.layers.Lambda(lambda x: tf.keras.losses.BinaryCrossentropy(from_logits = False)(tf.ones_like(x[0][:tf.shape(x[1])[0],...]), x[0][:tf.shape(x[1])[0],...]) + \
+                                           tf.keras.losses.BinaryCrossentropy(from_logits = False)(tf.zeros_like(x[0][tf.shape(x[1])[0]:,...]), x[0][tf.shape(x[1])[0]:,...]))([disc0, real_gaussian0]);
+  return tf.keras.Model(inputs = (real_gaussian0, real_gaussian1, real_gaussian2, real_laplacian0, real_laplacian1, real_laplacian2), outputs = (loss0, loss1, loss2));
 
 if __name__ == "__main__":
 
