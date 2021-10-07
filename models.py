@@ -97,11 +97,10 @@ def Trainer():
   real_gaussian2 = tf.keras.Input((8,8,3)); # real_gaussian2.shape = (batch, 8, 8, 3)
   real_gaussian1 = tf.keras.Input((16,16,3)); # real_gaussian1.shape = (batch, 16, 16, 3)
   real_gaussian0 = tf.keras.Input((32,32,3)); # real_gaussian0.shape = (batch, 32, 32, 3)
-  real_laplacian2 = tf.keras.Input((8,8,3)); # real_laplacian2.shape = (batch, 8, 8, 3)
   real_laplacian1 = tf.keras.Input((16,16,3)); # real_laplacian1.shape = (batch, 16, 16, 3)
   real_laplacian0 = tf.keras.Input((32,32,3)); # real_laplacian0.shape = (batch, 32, 32, 3)
-  noise2 = tf.keras.layers.Lambda(lambda x: tf.random.normal(shape = (tf.shape(x)[0], 100,), stddev = 0.1))(real_gaussian2);
-  noise1 = tf.keras.layers.Lambda(lambda x: tf.random.normal(shape = (tf.shape(x)[0], 16,16,1), stddev = 0.1))(real_gassian1);
+  noise2 = tf.keras.layers.Lambda(lambda x: tf.random.normal(shape = (tf.shape(x)[0], 100), stddev = 0.1))(real_gaussian2);
+  noise1 = tf.keras.layers.Lambda(lambda x: tf.random.normal(shape = (tf.shape(x)[0], 16,16,1), stddev = 0.1))(real_gaussian1);
   noise0 = tf.keras.layers.Lambda(lambda x: tf.random.normal(shape = (tf.shape(x)[0], 32,32,1), stddev = 0.1))(real_gaussian0);
   fake_gaussian2 = GeneratorTwo()(noise2); # fake_gaussian2.shape = (batch, 8, 8, 3)
   fake_laplacian1 = GeneratorOne()([noise1, real_gaussian1]); # fake_laplacian1.shape = (batch, 16, 16, 3)
@@ -115,12 +114,15 @@ def Trainer():
   disc1 = DiscriminatorOne()([laplacian1, gaussian1]); # disc1.shape = (batch * 2, 1)
   disc0 = DiscriminatorZero()([laplacian0, gaussian0]); # disc0.shape = (batch * 2, 1)
   loss2 = tf.keras.layers.Lambda(lambda x: tf.keras.losses.BinaryCrossentropy(from_logits = False)(tf.ones_like(x[0][:tf.shape(x[1])[0],...]), x[0][:tf.shape(x[1])[0],...]) + \
-                                           tf.keras.losses.BinaryCrossentropy(from_logits = False)(tf.zeros_like(x[0][tf.shape(x[1])[0]:,...]), x[0][tf.shape(x[1])[0]:,...]))([disc2, real_gaussian2]);
+                                           tf.keras.losses.BinaryCrossentropy(from_logits = False)(tf.zeros_like(x[0][tf.shape(x[1])[0]:,...]), x[0][tf.shape(x[1])[0]:,...]),
+                                 name = 'loss2')([disc2, real_gaussian2]);
   loss1 = tf.keras.layers.Lambda(lambda x: tf.keras.losses.BinaryCrossentropy(from_logits = False)(tf.ones_like(x[0][:tf.shape(x[1])[0],...]), x[0][:tf.shape(x[1])[0],...]) + \
-                                           tf.keras.losses.BinaryCrossentropy(from_logits = False)(tf.zeros_like(x[0][tf.shape(x[1])[0]:,...]), x[0][tf.shape(x[1])[0]:,...]))([disc1, real_gaussian1]);
+                                           tf.keras.losses.BinaryCrossentropy(from_logits = False)(tf.zeros_like(x[0][tf.shape(x[1])[0]:,...]), x[0][tf.shape(x[1])[0]:,...]),
+                                 name = 'loss1')([disc1, real_gaussian1]);
   loss0 = tf.keras.layers.Lambda(lambda x: tf.keras.losses.BinaryCrossentropy(from_logits = False)(tf.ones_like(x[0][:tf.shape(x[1])[0],...]), x[0][:tf.shape(x[1])[0],...]) + \
-                                           tf.keras.losses.BinaryCrossentropy(from_logits = False)(tf.zeros_like(x[0][tf.shape(x[1])[0]:,...]), x[0][tf.shape(x[1])[0]:,...]))([disc0, real_gaussian0]);
-  return tf.keras.Model(inputs = (real_gaussian0, real_gaussian1, real_gaussian2, real_laplacian0, real_laplacian1, real_laplacian2), outputs = (loss0, loss1, loss2));
+                                           tf.keras.losses.BinaryCrossentropy(from_logits = False)(tf.zeros_like(x[0][tf.shape(x[1])[0]:,...]), x[0][tf.shape(x[1])[0]:,...]),
+                                 name = 'loss0')([disc0, real_gaussian0]);
+  return tf.keras.Model(inputs = (real_gaussian0, real_gaussian1, real_gaussian2, real_laplacian0, real_laplacian1), outputs = (loss0, loss1, loss2));
 
 if __name__ == "__main__":
 
@@ -147,3 +149,5 @@ if __name__ == "__main__":
   results = pyrup(tf.ones((1,2,2,2)));
   print(results[0,:,:,0]);
   print(results[0,:,:,1]);
+  trainer = Trainer();
+  tf.keras.utils.plot_model(trainer, to_file = 'trainer.png', expand_nested = True);
