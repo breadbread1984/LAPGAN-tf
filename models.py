@@ -70,6 +70,22 @@ def GeneratorTwo():
   results = tf.keras.layers.Reshape((8,8,3))(results);
   return tf.keras.Model(inputs = noise, outputs = results);
 
+def PyrDown(channels):
+  inputs = tf.keras.Input((None, None, channels)); # inputs.shape = (batch, height, width, channel)
+  # 1) down sample
+  results = tf.keras.layers.Lambda(lambda x: tf.nn.space_to_depth(x, 2))(inputs); # results.shape = (batch, height / 2, width / 2, channels * 4)
+  results = tf.keras.layers.Lambda(lambda x: x[...,::4])(results); # results.shape = (batch, height / 2, width / 2, channels)
+  # 2) gaussian filtering
+  kernel = tf.keras.layers.Lambda(lambda x: tf.constant(
+    [[1./256., 4./256., 6./256., 4./256., 1./256.],
+     [4./256., 16./256., 24./256., 16./256., 4./256.],
+     [6./256., 24./256., 36./256., 24./256., 6./256.],
+     [4./256., 16./256., 24./256., 16./256., 4./256.],
+     [1./256., 4./256., 6./256., 4./256., 1./256.]]))(inputs);
+  kernel = tf.keras.layers.Lambda(lambda x,c: tf.tile(tf.reshape(x, (5,5,1,1)), (1,1,c,1)), arguments = {'c': channels})(kernel); # kernel.shape = (5,5,channels,1)
+  gaussian = tf.keras.layers.Lambda(lambda x: tf.nn.depthwise_conv2d(x[0], x[1] / 4, strides = [1,1,1,1], padding = 'SAME'))([results, kernel]);
+  return tf.keras.Model(inputs = inputs, outputs = gaussian);
+
 def PyrUp(channels):
   inputs = tf.keras.Input((None, None, channels)); # inputs.shape = (batch, height, width, channel)
   # 1) dilate with zeros
