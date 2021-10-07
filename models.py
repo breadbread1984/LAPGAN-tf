@@ -79,10 +79,7 @@ def PyrUp(channels):
   results = tf.keras.layers.Lambda(lambda x: tf.stack([x, tf.zeros_like(x)], axis = -1))(results); # results.shape = (batch, height * 2, width, channels, 2)
   results = tf.keras.layers.Lambda(lambda x: tf.transpose(x, (0, 1, 2, 4, 3)))(results); # results.shape = (batch, height * 2, width, 2, channels)
   results = tf.keras.layers.Lambda(lambda x: tf.reshape(x, (tf.shape(x)[0], tf.shape(x)[1], -1, tf.shape(x)[4])))(results); # results.shape = (batch, height * 2, width * 2, channels);
-  results = tf.keras.layers.Lambda(lambda x: x[:,:-1,:-1,:])(results); # results.shape = (batch, height * 2 - 1, width * 2 - 1, channels)
-  # 2) reflect padding
-  results = tf.keras.layers.Lambda(lambda x: tf.pad(x, [[0,0],[1,1],[1,1],[0,0]], "REFLECT"))(results);
-  # 3) gaussian filtering
+  # 2) gaussian filtering
   kernel = tf.keras.layers.Lambda(lambda x: tf.constant(
     [[1./256., 4./256., 6./256., 4./256., 1./256.],
      [4./256., 16./256., 24./256., 16./256., 4./256.],
