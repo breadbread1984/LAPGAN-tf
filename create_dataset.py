@@ -3,7 +3,7 @@
 from absl import app, flags;
 import tensorflow as tf;
 import tensorflow_datasets as tfds;
-from models import PyrUp;
+from models import PyrDown, PyrUp;
 
 FLAGS = flags.FLAGS;
 
@@ -16,16 +16,17 @@ def download():
   cifar10_builder.download_and_prepare();
 
 def parse_sample(features):
-  _, img, label = features['id'], features['image'].numpy(), features['label'];
+  _, img, label = features['id'], features['image'], features['label'];
+  img = tf.cast(img, dtype = tf.float32);
   gaussian = list();
   laplacian = list();
   for i in range(3):
     if i == 2:
       gaussian.append(img);
     else:
-      downsampled = np.array([cv2.pyrDown(img[...,c]) for c in range(3)]); # downsampled.shape = (h, w, channel)
+      downsampled = PyrDown(3)(tf.expand_dims(img, axis = 0))[0]; # downsampled.shape = (h, w, channel)
       coarsed = PyrUp(3)(tf.expand_dims(downsampled, axis = 0))[0]; # coarsed.shape = (h, w, channel)
-      residual = tf.constant(img - coarsed.numpy());
+      residual = img - coarsed;
       gaussian.append(coarsed);
       laplacian.append(residual);
       img = downsampled;
