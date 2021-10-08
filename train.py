@@ -2,6 +2,7 @@
 
 from os.path import join, exists;
 from absl import app, flags;
+import numpy as np;
 import tensorflow as tf;
 from models import Trainer, LAPGAN;
 from create_dataset import load_datasets;
