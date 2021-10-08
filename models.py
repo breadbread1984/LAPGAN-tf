@@ -163,7 +163,7 @@ def Trainer():
                                  name = 'dloss0')([ddisc0, real_gaussian0]);
   # NOTE: stop gradient is to prevent back propagation of g loss updates parameters of discriminators
   gdisc2 = disc2(fake_gaussian2);
-  sg_gdisc2 = tf.keras.layers.Lambda(lambda x: tf.stop_gradient(x[0] - x[1]) + x[1])([gdisc0, fake_gaussian2]);
+  sg_gdisc2 = tf.keras.layers.Lambda(lambda x: tf.stop_gradient(x[0] - x[1]) + x[1])([gdisc2, fake_gaussian2]);
   gdisc1 = disc1([fake_laplacian1, real_gaussian1]);
   sg_gdisc1 = tf.keras.layers.Lambda(lambda x: tf.stop_gradient(x[0] - x[1]) + x[1])([gdisc1, fake_laplacian1]);
   gdisc0 = disc0([fake_laplacian0, real_gaussian0]);
