@@ -18,7 +18,8 @@ def minimize(_, loss):
   return loss;
 
 class SummaryCallback(tf.keras.callbacks.Callback):
-  def __init__(self, eval_freq = 100):
+  def __init__(self, trainer, eval_freq = 100):
+
       
 def main(unused_argv):
   if exists(FLAGS.checkpoint):

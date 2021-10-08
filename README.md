@@ -15,7 +15,13 @@ pip3 install -r requirements.txt
 download and prepare dataset with the following command
 
 ```shell
-python3 create_dataset
+python3 create_dataset.py
+```
+
+test the downloaded dataset with the command
+
+```shell
+python3 create_dataset.py --test
 ```
 
 ## how to train

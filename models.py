@@ -106,6 +106,28 @@ def PyrUp(channels):
   gaussian = tf.keras.layers.Lambda(lambda x: tf.nn.depthwise_conv2d(x[0], x[1] * 4, strides = [1,1,1,1], padding = 'SAME'))([results, kernel]);
   return tf.keras.Model(inputs = inputs, outputs = gaussian);
 
+def LAPGAN(gen2 = None, gen1 = None, gen0 = None):
+  noise2 = tf.keras.Input((100,)); # noise2.shape = (batch, 100)
+  noise1 = tf.keras.Input((16,16,1)); # noise1.shape = (batch, 16, 16, 1)
+  noise0 = tf.keras.Input((32,32,1)); # noise0.shape = (batch, 32, 32, 1)
+  if gen2 is None:
+    fake_gaussian2 = GeneratorTwo()(noise2); # fake_gaussian2.shape = (batch, 8, 8, 3)
+  else:
+    fake_gaussian2 = gen2(noise2); # fake_gaussian2.shape = (batch, 8, 8, 3)
+  fake_gaussian2 = PyrUp(3)(fake_gaussian2); # fake_gaussian2.shape = (batch, 16, 16, 3)
+  if gen1 is None:
+    fake_laplacian1 = GeneratorOne()([noise1, fake_gaussian2]); # fake_laplacian1.shape = (batch, 16, 16, 3)
+  else:
+    fake_laplacian1 = gen1([noise1, fake_gaussian2]); # fake_laplacian1.shape = (batch, 16, 16, 3)
+  fake_gaussian1 = tf.keras.layers.Add()([fake_laplacian1, fake_gaussian2]); # fake_gaussian1.shape = (batch, 16, 16, 3)
+  fake_gaussian1 = PyrUp(3)(fake_gaussian1); # fake_gaussian1.shape = (batch, 32, 32, 3)
+  if gen0 is None:
+    fake_laplacian0 = GeneratorZero()([noise0, fake_gaussian1]); # fake_laplacian0.shape = (batch, 32, 32, 3)
+  else:
+    fake_laplacian0 = gen0([noise0, fake_gaussian1]); # fake_laplacian0.shape = (batch, 32, 32, 3)
+  fake_gaussian0 = tf.keras.layers.Add()([fake_laplacian0, fake_gaussian1]); # fake_gaussian0.shape = (batch, 32, 32, 3)
+  return tf.keras.Model(inputs = (noise2, noise1, noise0), outputs = fake_gaussian0);
+
 def Trainer():
   real_gaussian2 = tf.keras.Input((8,8,3)); # real_gaussian2.shape = (batch, 8, 8, 3)
   real_gaussian1 = tf.keras.Input((16,16,3)); # real_gaussian1.shape = (batch, 16, 16, 3)
