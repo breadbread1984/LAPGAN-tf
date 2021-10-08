@@ -148,16 +148,19 @@ def Trainer():
   disc2 = DiscriminatorTwo()([gaussian2]); # disc2.shape = (batch * 2, 1)
   disc1 = DiscriminatorOne()([laplacian1, gaussian1]); # disc1.shape = (batch * 2, 1)
   disc0 = DiscriminatorZero()([laplacian0, gaussian0]); # disc0.shape = (batch * 2, 1)
-  loss2 = tf.keras.layers.Lambda(lambda x: tf.keras.losses.BinaryCrossentropy(from_logits = False)(tf.ones_like(x[0][:tf.shape(x[1])[0],...]), x[0][:tf.shape(x[1])[0],...]) + \
+  dloss2 = tf.keras.layers.Lambda(lambda x: tf.keras.losses.BinaryCrossentropy(from_logits = False)(tf.ones_like(x[0][:tf.shape(x[1])[0],...]), x[0][:tf.shape(x[1])[0],...]) + \
                                            tf.keras.losses.BinaryCrossentropy(from_logits = False)(tf.zeros_like(x[0][tf.shape(x[1])[0]:,...]), x[0][tf.shape(x[1])[0]:,...]),
-                                 name = 'loss2')([disc2, real_gaussian2]);
-  loss1 = tf.keras.layers.Lambda(lambda x: tf.keras.losses.BinaryCrossentropy(from_logits = False)(tf.ones_like(x[0][:tf.shape(x[1])[0],...]), x[0][:tf.shape(x[1])[0],...]) + \
+                                 name = 'dloss2')([disc2, real_gaussian2]);
+  dloss1 = tf.keras.layers.Lambda(lambda x: tf.keras.losses.BinaryCrossentropy(from_logits = False)(tf.ones_like(x[0][:tf.shape(x[1])[0],...]), x[0][:tf.shape(x[1])[0],...]) + \
                                            tf.keras.losses.BinaryCrossentropy(from_logits = False)(tf.zeros_like(x[0][tf.shape(x[1])[0]:,...]), x[0][tf.shape(x[1])[0]:,...]),
-                                 name = 'loss1')([disc1, real_gaussian1]);
-  loss0 = tf.keras.layers.Lambda(lambda x: tf.keras.losses.BinaryCrossentropy(from_logits = False)(tf.ones_like(x[0][:tf.shape(x[1])[0],...]), x[0][:tf.shape(x[1])[0],...]) + \
+                                 name = 'dloss1')([disc1, real_gaussian1]);
+  dloss0 = tf.keras.layers.Lambda(lambda x: tf.keras.losses.BinaryCrossentropy(from_logits = False)(tf.ones_like(x[0][:tf.shape(x[1])[0],...]), x[0][:tf.shape(x[1])[0],...]) + \
                                            tf.keras.losses.BinaryCrossentropy(from_logits = False)(tf.zeros_like(x[0][tf.shape(x[1])[0]:,...]), x[0][tf.shape(x[1])[0]:,...]),
-                                 name = 'loss0')([disc0, real_gaussian0]);
-  return tf.keras.Model(inputs = (real_gaussian0, real_gaussian1, real_gaussian2, real_laplacian0, real_laplacian1), outputs = (loss0, loss1, loss2));
+                                 name = 'dloss0')([disc0, real_gaussian0]);
+  gloss2 = tf.keras.layers.Lambda(lambda x: tf.keras.losses.BinaryCrossentropy(from_logits = False)(tf.ones_like(x[0][tf.shape(x[1])[0]:,...]), x[0][tf.shape(x[1])[0]:,...]), name = 'gloss2')([disc2, real_gaussian2]);
+  gloss1 = tf.keras.layers.Lambda(lambda x: tf.keras.losses.BinaryCrossentropy(from_logits = False)(tf.ones_like(x[0][tf.shape(x[1])[0]:,...]), x[0][tf.shape(x[1])[0]:,...]), name = 'gloss1')([disc1, real_gaussian1]);
+  gloss0 = tf.keras.layers.Lambda(lambda x: tf.keras.losses.BinaryCrossentropy(from_logits = False)(tf.ones_like(x[0][tf.shape(x[1])[0]:,...]), x[0][tf.shape(x[1])[0]:,...]), name = 'gloss0')([disc0, real_gaussian0]);
+  return tf.keras.Model(inputs = (real_gaussian0, real_gaussian1, real_gaussian2, real_laplacian0, real_laplacian1), outputs = (dloss0, dloss1, dloss2, gloss0, gloss1, gloss2));
 
 if __name__ == "__main__":
 
