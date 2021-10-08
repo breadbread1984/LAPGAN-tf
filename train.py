@@ -56,9 +56,12 @@ class SummaryCallback(tf.keras.callbacks.Callback):
         tf.summary.scalar('gloss1', self.gloss1.result(), step = self.optimizer.iterations);
         tf.summary.scalar('gloss2', self.gloss2.result(), step = self.optimizer.iterations);
         tf.summary.image('sample', sample, step = self.optimizer.iterations);
-      self.loss0.reset_states();
-      self.loss1.reset_states();
-      self.loss2.reset_states();
+      self.dloss0.reset_states();
+      self.dloss1.reset_states();
+      self.dloss2.reset_states();
+      self.gloss0.reset_states();
+      self.gloss1.reset_states();
+      self.gloss2.reset_states();
   def on_epoch_begin(self, epoch, logs = None):
     pass;
   def on_epoch_end(self, epoch, logs = None):
