@@ -42,6 +42,7 @@ def load_datasets():
 
 def main(unused_argv):
   if FLAGS.test:
+    import numpy as np;
     import cv2;
     trainset, testset = load_datasets();
     cv2.namedWindow('gaussian0', cv2.WINDOW_NORMAL);
@@ -49,13 +50,15 @@ def main(unused_argv):
     cv2.namedWindow('gaussian2', cv2.WINDOW_NORMAL);
     cv2.namedWindow('laplacian0', cv2.WINDOW_NORMAL);
     cv2.namedWindow('laplacian1', cv2.WINDOW_NORMAL);
-    for sample, label in trainset_iter:
+    cv2.namedWindow('reconstruct', cv2.WINDOW_NORMAL);
+    for sample, label in trainset:
       real_gaussian0, real_gaussian1, real_gaussian2, real_laplacian0, real_laplacian1 = sample;
-      cv2.imshow('gaussian0', real_gaussian0);
-      cv2.imshow('gaussian1', real_gaussian1);
-      cv2.imshow('gaussian2', real_gaussian2);
-      cv2.imshow('laplacian0', real_laplacian0);
-      cv2.imshow('laplacian1', real_laplacian1);
+      cv2.imshow('gaussian0', real_gaussian0.numpy().astype(np.uint8));
+      cv2.imshow('gaussian1', real_gaussian1.numpy().astype(np.uint8));
+      cv2.imshow('gaussian2', real_gaussian2.numpy().astype(np.uint8));
+      cv2.imshow('laplacian0', real_laplacian0.numpy());
+      cv2.imshow('laplacian1', real_laplacian1.numpy());
+      cv2.imshow('reconstruct', (real_gaussian0.numpy() + real_laplacian0.numpy()).astype(np.uint8))
       cv2.waitKey();
   else:
     download();
