@@ -40,7 +40,7 @@ def DiscriminatorTwo():
   results = tf.keras.layers.Dense(units = 1, activation = tf.keras.activations.sigmoid)(results);
   return tf.keras.Model(inputs = gaussian, outputs = results);
 
-def GeneratorZero():
+def GeneratorZero(**kwargs):
   noise = tf.keras.Input((32,32,1));
   gaussian = tf.keras.Input((32,32,3));
   results = tf.keras.layers.Concatenate(axis = -1)([gaussian, noise]);
@@ -49,9 +49,9 @@ def GeneratorZero():
   results = tf.keras.layers.Conv2D(128, kernel_size = (3,3), padding = 'same', activation = tf.keras.activations.relu)(results);
   results = tf.keras.layers.BatchNormalization()(results);
   laplacian = tf.keras.layers.Conv2D(3, kernel_size = (3,3), padding = 'same')(results);
-  return tf.keras.Model(inputs = (noise, gaussian), outputs = laplacian);
+  return tf.keras.Model(inputs = (noise, gaussian), outputs = laplacian, **kwargs);
 
-def GeneratorOne():
+def GeneratorOne(**kwargs):
   noise = tf.keras.Input((16,16,1));
   gaussian = tf.keras.Input((16,16,3));
   results = tf.keras.layers.Concatenate(axis = -1)([gaussian, noise]);
@@ -60,15 +60,15 @@ def GeneratorOne():
   results = tf.keras.layers.Conv2D(64, kernel_size = (3,3), padding = 'same', activation = tf.keras.activations.relu)(results);
   results = tf.keras.layers.BatchNormalization()(results);
   laplacian = tf.keras.layers.Conv2D(3, kernel_size = (3,3), padding = 'same')(results);
-  return tf.keras.Model(inputs = (noise, gaussian), outputs = laplacian);
+  return tf.keras.Model(inputs = (noise, gaussian), outputs = laplacian, **kwargs);
 
-def GeneratorTwo():
+def GeneratorTwo(**kwargs):
   noise = tf.keras.Input((100,));
   results = tf.keras.layers.Dense(1200, activation = tf.keras.activations.relu)(noise);
   results = tf.keras.layers.Dense(1200, activation = tf.keras.activations.sigmoid)(results);
   results = tf.keras.layers.Dense(8*8*3)(results);
   results = tf.keras.layers.Reshape((8,8,3))(results);
-  return tf.keras.Model(inputs = noise, outputs = results);
+  return tf.keras.Model(inputs = noise, outputs = results, **kwargs);
 
 def PyrDown(channels):
   inputs = tf.keras.Input((None, None, channels)); # inputs.shape = (batch, height, width, channel)
@@ -137,9 +137,9 @@ def Trainer():
   noise2 = tf.keras.layers.Lambda(lambda x: tf.random.normal(shape = (tf.shape(x)[0], 100), stddev = 0.1))(real_gaussian2);
   noise1 = tf.keras.layers.Lambda(lambda x: tf.random.normal(shape = (tf.shape(x)[0], 16,16,1), stddev = 0.1))(real_gaussian1);
   noise0 = tf.keras.layers.Lambda(lambda x: tf.random.normal(shape = (tf.shape(x)[0], 32,32,1), stddev = 0.1))(real_gaussian0);
-  fake_gaussian2 = GeneratorTwo()(noise2); # fake_gaussian2.shape = (batch, 8, 8, 3)
-  fake_laplacian1 = GeneratorOne()([noise1, real_gaussian1]); # fake_laplacian1.shape = (batch, 16, 16, 3)
-  fake_laplacian0 = GeneratorZero()([noise0, real_gaussian0]); # fake_laplacian0.shape = (batch, 32, 32, 3)
+  fake_gaussian2 = GeneratorTwo(name = 'gen2')(noise2); # fake_gaussian2.shape = (batch, 8, 8, 3)
+  fake_laplacian1 = GeneratorOne(name = 'gen1')([noise1, real_gaussian1]); # fake_laplacian1.shape = (batch, 16, 16, 3)
+  fake_laplacian0 = GeneratorZero(name = 'gen0')([noise0, real_gaussian0]); # fake_laplacian0.shape = (batch, 32, 32, 3)
   gaussian2 = tf.keras.layers.Concatenate(axis = 0)([real_gaussian2, fake_gaussian2]); # gaussian2.shape = (batch * 2, 8, 8, 3)
   gaussian1 = tf.keras.layers.Concatenate(axis = 0)([real_gaussian1, real_gaussian1]); # gaussian1.shape = (batch * 2, 8, 8, 3)
   laplacian1 = tf.keras.layers.Concatenate(axis = 0)([real_laplacian1, fake_laplacian1]); # laplacian1.shape = (batch * 2, 16, 16, 3)

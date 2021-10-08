@@ -26,4 +26,8 @@ python3 create_dataset.py --test
 
 ## how to train
 
+train model with command
 
+```shell
+python3 train.py 
+```
