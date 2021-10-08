@@ -30,7 +30,7 @@ def parse_sample(features):
       gaussian.append(coarsed);
       laplacian.append(residual);
       img = downsampled;
-  return (*gaussian, *laplacian), (0,0,0);
+  return (*gaussian, *laplacian), (0,0,0,0,0,0);
 
 def load_datasets():
 
