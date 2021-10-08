@@ -83,7 +83,7 @@ def PyrDown(channels):
      [4./256., 16./256., 24./256., 16./256., 4./256.],
      [1./256., 4./256., 6./256., 4./256., 1./256.]]))(inputs);
   kernel = tf.keras.layers.Lambda(lambda x,c: tf.tile(tf.reshape(x, (5,5,1,1)), (1,1,c,1)), arguments = {'c': channels})(kernel); # kernel.shape = (5,5,channels,1)
-  gaussian = tf.keras.layers.Lambda(lambda x: tf.nn.depthwise_conv2d(x[0], x[1] / 4, strides = [1,1,1,1], padding = 'SAME'))([results, kernel]);
+  gaussian = tf.keras.layers.Lambda(lambda x: tf.nn.depthwise_conv2d(x[0], x[1], strides = [1,1,1,1], padding = 'SAME'))([results, kernel]);
   return tf.keras.Model(inputs = inputs, outputs = gaussian);
 
 def PyrUp(channels):
