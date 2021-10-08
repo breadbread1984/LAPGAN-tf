@@ -26,9 +26,12 @@ class SummaryCallback(tf.keras.callbacks.Callback):
     gen2 = trainer.get_layer('gen2');
     self.optimizer = trainer.optimizer;
     self.lapgan = LAPGAN(gen2, gen1, gen0);
-    self.loss0 = tf.keras.metrics.Mean(name = 'loss0', dtype = tf.float32);
-    self.loss1 = tf.keras.metrics.Mean(name = 'loss1', dtype = tf.float32);
-    self.loss2 = tf.keras.metrics.Mean(name = 'loss2', dtype = tf.float32);
+    self.dloss0 = tf.keras.metrics.Mean(name = 'dloss0', dtype = tf.float32);
+    self.dloss1 = tf.keras.metrics.Mean(name = 'dloss1', dtype = tf.float32);
+    self.dloss2 = tf.keras.metrics.Mean(name = 'dloss2', dtype = tf.float32);
+    self.gloss0 = tf.keras.metrics.Mean(name = 'gloss0', dtype = tf.float32);
+    self.gloss1 = tf.keras.metrics.Mean(name = 'gloss1', dtype = tf.float32);
+    self.gloss2 = tf.keras.metrics.Mean(name = 'gloss2', dtype = tf.float32);
     self.log = tf.summary.create_file_writer(FLAGS.checkpoint);
   def on_batch_begin(self, batch, logs = None):
     pass;
@@ -38,14 +41,20 @@ class SummaryCallback(tf.keras.callbacks.Callback):
     noise0 = np.random.normal(scale = 0.1, size = (1, 32, 32, 1));
     sample = self.lapgan([noise2, noise1, noise0]); # sample.shape = (1, 32, 32, 3)
     sample = tf.cast(sample, dtype = tf.uint8);
-    self.loss0.update_state(logs['loss0_loss']);
-    self.loss1.update_state(logs['loss1_loss']);
-    self.loss2.update_state(logs['loss2_loss']);
+    self.dloss0.update_state(logs['dloss0_loss']);
+    self.dloss1.update_state(logs['dloss1_loss']);
+    self.dloss2.update_state(logs['dloss2_loss']);
+    self.gloss0.update_state(logs['gloss0_loss']);
+    self.gloss1.update_state(logs['gloss1_loss']);
+    self.gloss2.update_state(logs['gloss2_loss']);
     if batch % self.eval_freq == 0:
       with self.log.as_default():
-        tf.summary.scalar('loss0', self.loss0.result(), step = self.optimizer.iterations);
-        tf.summary.scalar('loss1', self.loss1.result(), step = self.optimizer.iterations);
-        tf.summary.scalar('loss2', self.loss2.result(), step = self.optimizer.iterations);
+        tf.summary.scalar('dloss0', self.dloss0.result(), step = self.optimizer.iterations);
+        tf.summary.scalar('dloss1', self.dloss1.result(), step = self.optimizer.iterations);
+        tf.summary.scalar('dloss2', self.dloss2.result(), step = self.optimizer.iterations);
+        tf.summary.scalar('gloss0', self.gloss0.result(), step = self.optimizer.iterations);
+        tf.summary.scalar('gloss1', self.gloss1.result(), step = self.optimizer.iterations);
+        tf.summary.scalar('gloss2', self.gloss2.result(), step = self.optimizer.iterations);
         tf.summary.image('sample', sample, step = self.optimizer.iterations);
       self.loss0.reset_states();
       self.loss1.reset_states();
@@ -63,7 +72,8 @@ def main(unused_argv):
     trainer = Trainer();
     optimizer = tf.keras.optimizers.Adam(FLAGS.lr);
     trainer.compile(optimizer = optimizer,
-                    loss = {'loss0': minimize, 'loss1': minimize, 'loss2': minimize});
+                    loss = {'dloss0': minimize, 'dloss1': minimize, 'dloss2': minimize,
+                            'gloss0': minimize, 'gloss1': minimize, 'gloss2': minimize});
   trainset, testset = load_datasets();
   trainset = trainset.shuffle(FLAGS.batch_size).batch(FLAGS.batch_size).prefetch(tf.data.experimental.AUTOTUNE);
   testset = testset.shuffle(FLAGS.batch_size).batch(FLAGS.batch_size).prefetch(tf.data.experimental.AUTOTUNE);
