@@ -37,14 +37,14 @@ class SummaryCallback(tf.keras.callbacks.Callback):
     noise0 = np.random.normal(scale = 0.1, size = (1, 32, 32, 1));
     sample = self.lapgan([noise2, noise1, noise0]); # sample.shape = (1, 32, 32, 3)
     sample = tf.cast(sample, dtype = tf.uint8);
-    self.loss0.update_state(logs['loss0']);
-    self.loss1.update_state(logs['loss1']);
-    self.loss2.update_state(logs['loss2']);
+    self.loss0.update_state(logs['loss0_loss']);
+    self.loss1.update_state(logs['loss1_loss']);
+    self.loss2.update_state(logs['loss2_loss']);
     if batch % self.eval_freq == 0:
       with self.log.as_default():
-        tf.summary.scalar('avg_loss0', self.loss0.result(), step = self.optimizer.iterations);
-        tf.summary.scalar('avg_loss1', self.loss1.result(), step = self.optimizer.iterations);
-        tf.summary.scalar('avg_loss2', self.loss2.result(), step = self.optimizer.iterations);
+        tf.summary.scalar('loss0', self.loss0.result(), step = self.optimizer.iterations);
+        tf.summary.scalar('loss1', self.loss1.result(), step = self.optimizer.iterations);
+        tf.summary.scalar('loss2', self.loss2.result(), step = self.optimizer.iterations);
         tf.summary.image('sample', sample, step = self.optimizer.iterations);
       self.loss0.reset_states();
       self.loss1.reset_states();
