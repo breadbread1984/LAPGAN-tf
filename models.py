@@ -140,26 +140,37 @@ def Trainer():
   fake_gaussian2 = GeneratorTwo(name = 'gen2')(noise2); # fake_gaussian2.shape = (batch, 8, 8, 3)
   fake_laplacian1 = GeneratorOne(name = 'gen1')([noise1, real_gaussian1]); # fake_laplacian1.shape = (batch, 16, 16, 3)
   fake_laplacian0 = GeneratorZero(name = 'gen0')([noise0, real_gaussian0]); # fake_laplacian0.shape = (batch, 32, 32, 3)
-  gaussian2 = tf.keras.layers.Concatenate(axis = 0)([real_gaussian2, fake_gaussian2]); # gaussian2.shape = (batch * 2, 8, 8, 3)
-  gaussian1 = tf.keras.layers.Concatenate(axis = 0)([real_gaussian1, real_gaussian1]); # gaussian1.shape = (batch * 2, 8, 8, 3)
-  laplacian1 = tf.keras.layers.Concatenate(axis = 0)([real_laplacian1, fake_laplacian1]); # laplacian1.shape = (batch * 2, 16, 16, 3)
-  gaussian0 = tf.keras.layers.Concatenate(axis = 0)([real_gaussian0, real_gaussian0]); # gaussian0.shape = (batch * 2, 16, 16, 3)
-  laplacian0 = tf.keras.layers.Concatenate(axis = 0)([real_laplacian0, fake_laplacian0]); # laplacian0.shape = (batch * 2, 32, 32, 3)
-  disc2 = DiscriminatorTwo()([gaussian2]); # disc2.shape = (batch * 2, 1)
-  disc1 = DiscriminatorOne()([laplacian1, gaussian1]); # disc1.shape = (batch * 2, 1)
-  disc0 = DiscriminatorZero()([laplacian0, gaussian0]); # disc0.shape = (batch * 2, 1)
+  # NOTE: stop gradient is to prevent backpropagation of d loss update parameters of generators
+  sg_gaussian2 = tf.keras.layers.Lambda(lambda x: tf.concat([x[0], tf.stop_gradient(x[1])], axis = 0))([real_gaussian2, fake_gaussian2]); # gaussian2.shape = (batch * 2, 8, 8, 3)
+  gaussian1 = tf.keras.layers.Concatenate(axis = 0)([real_gaussian1, real_gaussian1]); # gaussian1.shape = (batch * 2, 16, 16, 3)
+  sg_laplacian1 = tf.keras.layers.Lambda(lambda x: tf.concat([x[0], tf.stop_gradient(x[1])], axis = 0))([real_laplacian1, fake_laplacian1]); # laplacian1.shape = (batch * 2, 16, 16, 3)
+  gaussian0 = tf.keras.layers.Concatenate(axis = 0)([real_gaussian0, real_gaussian0]); # gaussian0.shape = (batch * 2, 32, 32, 3)
+  sg_laplacian0 = tf.keras.layers.Lambda(lambda x: tf.concat([x[0], tf.stop_gradient(x[1])], axis = 0))([real_laplacian0, fake_laplacian0]); # laplacian0.shape = (batch * 2, 32, 32, 3)
+  disc2 = DiscriminatorTwo();
+  disc1 = DiscriminatorOne();
+  disc0 = DiscriminatorZero();
+  ddisc2 = disc2(sg_gaussian2); # disc2.shape = (batch * 2, 1)
+  ddisc1 = disc1([sg_laplacian1, gaussian1]); # disc1.shape = (batch * 2, 1)
+  ddisc0 = disc0([sg_laplacian0, gaussian0]); # disc0.shape = (batch * 2, 1)
   dloss2 = tf.keras.layers.Lambda(lambda x: tf.keras.losses.BinaryCrossentropy(from_logits = False)(tf.ones_like(x[0][:tf.shape(x[1])[0],...]), x[0][:tf.shape(x[1])[0],...]) + \
                                            tf.keras.losses.BinaryCrossentropy(from_logits = False)(tf.zeros_like(x[0][tf.shape(x[1])[0]:,...]), x[0][tf.shape(x[1])[0]:,...]),
-                                 name = 'dloss2')([disc2, real_gaussian2]);
+                                 name = 'dloss2')([ddisc2, real_gaussian2]);
   dloss1 = tf.keras.layers.Lambda(lambda x: tf.keras.losses.BinaryCrossentropy(from_logits = False)(tf.ones_like(x[0][:tf.shape(x[1])[0],...]), x[0][:tf.shape(x[1])[0],...]) + \
                                            tf.keras.losses.BinaryCrossentropy(from_logits = False)(tf.zeros_like(x[0][tf.shape(x[1])[0]:,...]), x[0][tf.shape(x[1])[0]:,...]),
-                                 name = 'dloss1')([disc1, real_gaussian1]);
+                                 name = 'dloss1')([ddisc1, real_gaussian1]);
   dloss0 = tf.keras.layers.Lambda(lambda x: tf.keras.losses.BinaryCrossentropy(from_logits = False)(tf.ones_like(x[0][:tf.shape(x[1])[0],...]), x[0][:tf.shape(x[1])[0],...]) + \
                                            tf.keras.losses.BinaryCrossentropy(from_logits = False)(tf.zeros_like(x[0][tf.shape(x[1])[0]:,...]), x[0][tf.shape(x[1])[0]:,...]),
-                                 name = 'dloss0')([disc0, real_gaussian0]);
-  gloss2 = tf.keras.layers.Lambda(lambda x: tf.keras.losses.BinaryCrossentropy(from_logits = False)(tf.ones_like(x[0][tf.shape(x[1])[0]:,...]), x[0][tf.shape(x[1])[0]:,...]), name = 'gloss2')([disc2, real_gaussian2]);
-  gloss1 = tf.keras.layers.Lambda(lambda x: tf.keras.losses.BinaryCrossentropy(from_logits = False)(tf.ones_like(x[0][tf.shape(x[1])[0]:,...]), x[0][tf.shape(x[1])[0]:,...]), name = 'gloss1')([disc1, real_gaussian1]);
-  gloss0 = tf.keras.layers.Lambda(lambda x: tf.keras.losses.BinaryCrossentropy(from_logits = False)(tf.ones_like(x[0][tf.shape(x[1])[0]:,...]), x[0][tf.shape(x[1])[0]:,...]), name = 'gloss0')([disc0, real_gaussian0]);
+                                 name = 'dloss0')([ddisc0, real_gaussian0]);
+  # NOTE: stop gradient is to prevent back propagation of g loss updates parameters of discriminators
+  gdisc2 = disc2(fake_gaussian2);
+  sg_gdisc2 = tf.keras.layers.Lambda(lambda x: tf.stop_gradient(x[0] - x[1]) + x[1])([gdisc0, fake_gaussian2]);
+  gdisc1 = disc1([fake_laplacian1, real_gaussian1]);
+  sg_gdisc1 = tf.keras.layers.Lambda(lambda x: tf.stop_gradient(x[0] - x[1]) + x[1])([gdisc1, fake_laplacian1]);
+  gdisc0 = disc0([fake_laplacian0, real_gaussian0]);
+  sg_gdisc0 = tf.keras.layers.Lambda(lambda x: tf.stop_gradient(x[0] - x[1]) + x[1])([gdisc0, fake_laplacian0]);
+  gloss2 = tf.keras.layers.Lambda(lambda x: tf.keras.losses.BinaryCrossentropy(from_logits = False)(tf.ones_like(x), x), name = 'gloss2')(sg_gdisc2);
+  gloss1 = tf.keras.layers.Lambda(lambda x: tf.keras.losses.BinaryCrossentropy(from_logits = False)(tf.ones_like(x), x), name = 'gloss1')(sg_gdisc1);
+  gloss0 = tf.keras.layers.Lambda(lambda x: tf.keras.losses.BinaryCrossentropy(from_logits = False)(tf.ones_like(x), x), name = 'gloss0')(sg_gdisc0);
   return tf.keras.Model(inputs = (real_gaussian0, real_gaussian1, real_gaussian2, real_laplacian0, real_laplacian1), outputs = (dloss0, dloss1, dloss2, gloss0, gloss1, gloss2));
 
 if __name__ == "__main__":
