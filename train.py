@@ -73,7 +73,9 @@ def main(unused_argv):
     optimizer = tf.keras.optimizers.Adam(FLAGS.lr);
     trainer.compile(optimizer = optimizer,
                     loss = {'dloss0': minimize, 'dloss1': minimize, 'dloss2': minimize,
-                            'gloss0': minimize, 'gloss1': minimize, 'gloss2': minimize});
+                            'gloss0': minimize, 'gloss1': minimize, 'gloss2': minimize},
+                    loss_weights = {'dloss0': 0.5, 'dloss1': 0.5, 'dloss2': 0.5,
+                                    'gloss0': 1, 'gloss1': 1, 'gloss2': 1});
   trainset, testset = load_datasets();
   trainset = trainset.shuffle(FLAGS.batch_size).batch(FLAGS.batch_size).prefetch(tf.data.experimental.AUTOTUNE);
   testset = testset.shuffle(FLAGS.batch_size).batch(FLAGS.batch_size).prefetch(tf.data.experimental.AUTOTUNE);
