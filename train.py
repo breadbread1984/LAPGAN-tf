@@ -20,6 +20,7 @@ def minimize(_, loss):
 
 class SummaryCallback(tf.keras.callbacks.Callback):
   def __init__(self, trainer, eval_freq = 100):
+    self.eval_freq = eval_freq;
     gen0 = trainer.get_layer('gen0');
     gen1 = trainer.get_layer('gen1');
     gen2 = trainer.get_layer('gen2');
