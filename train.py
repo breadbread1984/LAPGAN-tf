@@ -1,10 +1,10 @@
 #!/usr/bin/python3
 
-from os.path import join;
+from os.path import join, exists;
 from absl import app, flags;
 import tensorflow as tf;
 from models import Trainer, LAPGAN;
-from create_datasets import load_datasets;
+from create_dataset import load_datasets;
 
 FLAGS = flags.FLAGS;
 
@@ -68,7 +68,7 @@ def main(unused_argv):
   callbacks = [
     tf.keras.callbacks.TensorBoard(log_dir = FLAGS.checkpoint),
     tf.keras.callbacks.ModelCheckpoint(filepath = join(FLAGS.checkpoint, 'ckpt'), save_freq = 1000),
-    SummaryCallback(trainer);
+    SummaryCallback(trainer)
   ];
   trainer.fit(trainset, epochs = FLAGS.epochs, validation_data = testset, callbacks = callbacks);
 
