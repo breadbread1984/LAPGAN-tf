@@ -2,7 +2,7 @@
 
 import tensorflow as tf;
 
-def DiscriminatorZero():
+def DiscriminatorZero(**kwargs):
   laplacian = tf.keras.Input((32,32,3));
   gaussian = tf.keras.Input((32,32,3));
   results = tf.keras.layers.Add()([laplacian, gaussian]);
@@ -14,9 +14,9 @@ def DiscriminatorZero():
   results = tf.keras.layers.BatchNormalization()(results);
   results = tf.keras.layers.Flatten()(results);
   results = tf.keras.layers.Dense(units = 1, activation = tf.keras.activations.sigmoid)(results);
-  return tf.keras.Model(inputs = (laplacian, gaussian), outputs = results);
+  return tf.keras.Model(inputs = (laplacian, gaussian), outputs = results, **kwargs);
 
-def DiscriminatorOne():
+def DiscriminatorOne(**kwargs):
   laplacian = tf.keras.Input((16,16,3));
   gaussian = tf.keras.Input((16,16,3));
   results = tf.keras.layers.Add()([laplacian, gaussian]);
@@ -28,9 +28,9 @@ def DiscriminatorOne():
   results = tf.keras.layers.BatchNormalization()(results);
   results = tf.keras.layers.Flatten()(results);
   results = tf.keras.layers.Dense(units = 1, activation = tf.keras.activations.sigmoid)(results);
-  return tf.keras.Model(inputs = (laplacian, gaussian), outputs = results);
+  return tf.keras.Model(inputs = (laplacian, gaussian), outputs = results, **kwargs);
 
-def DiscriminatorTwo():
+def DiscriminatorTwo(**kwargs):
   gaussian = tf.keras.Input((8,8,3));
   results = tf.keras.layers.Flatten()(gaussian);
   results = tf.keras.layers.Dense(units = 600)(results);
@@ -38,7 +38,7 @@ def DiscriminatorTwo():
   results = tf.keras.layers.Dense(units = 600)(results);
   results = tf.keras.layers.LeakyReLU()(results);
   results = tf.keras.layers.Dense(units = 1, activation = tf.keras.activations.sigmoid)(results);
-  return tf.keras.Model(inputs = gaussian, outputs = results);
+  return tf.keras.Model(inputs = gaussian, outputs = results, **kwargs);
 
 def GeneratorZero(**kwargs):
   noise = tf.keras.Input((32,32,1));
