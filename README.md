@@ -31,3 +31,15 @@ train model with command
 ```shell
 python3 train.py 
 ```
+
+## how to save model from checkpoint
+
+```shell
+python3 save_model.py
+```
+
+## how to generate image from generator
+
+```shell
+python3 test.py
+```
