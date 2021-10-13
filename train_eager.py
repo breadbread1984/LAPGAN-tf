@@ -17,8 +17,8 @@ def add_options():
   flags.DEFINE_float('lr', default = 3e-4, help = 'learning rate');
   flags.DEFINE_bool('save_model', default = False, help = 'whethet to save model');
   flags.DEFINE_integer('disc_train_steps', default = 5, help = 'how many discriminator training steps for each generator training step');
-  flags.DEFINE_integer('checkpoint_steps', default = 1000, help = 'how many iterations for each checkpoint');
-  flags.DEFINE_integer('eval_steps', default = 100, help = 'how many iterations for each evaluation');
+  flags.DEFINE_integer('checkpoint_steps', default = 600, help = 'how many iterations for each checkpoint');
+  flags.DEFINE_integer('eval_steps', default = 60, help = 'how many iterations for each evaluation');
 
 def main(unused_argv):
   # 1) create dataset
