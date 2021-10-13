@@ -74,7 +74,7 @@ def main(unused_argv):
       d1_loss = 0.5 * (tf.keras.losses.BinaryCrossentropy(from_logits = False)(tf.zeros_like(fake_disc1), fake_disc1) + \
                        tf.keras.losses.BinaryCrossentropy(from_logits = False)(tf.ones_like(real_disc1), real_disc1));
       d0_loss = 0.5 * (tf.keras.losses.BinaryCrossentropy(from_logits = False)(tf.zeros_like(fake_disc0), fake_disc0) + \
-                       tf.kersa.losses.BinaryCrossentropy(from_logtis = False)(tf.ones_like(real_disc0), real_disc0));
+                       tf.keras.losses.BinaryCrossentropy(from_logtis = False)(tf.ones_like(real_disc0), real_disc0));
       g2_loss = tf.keras.losses.BinaryCrossentropy(from_logits = False)(tf.ones_like(fake_disc2), fake_disc2);
       g1_loss = tf.keras.losses.BinaryCrossentropy(from_logits = False)(tf.ones_like(fake_disc1), fake_disc1);
       g0_loss = tf.keras.losses.BinaryCrossentropy(from_logits = False)(tf.ones_like(fake_disc0), fake_disc0);
