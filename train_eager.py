@@ -56,9 +56,10 @@ def main(unused_argv):
   disc2_loss = tf.keras.metrics.Mean(name = 'disc2_loss', dtype = tf.float32);
   while True:
     (real_gaussian0, real_gaussian1, real_gaussian2, real_laplacian0, real_laplacian1), _ = next(trainset);
-    noise2 = tf.random.normal(shape = (FLAGS.batch_size, 100), stddev = 0.1);
-    noise1 = tf.random.normal(shape = (FLAGS.batch_size, 16,16,1), stddev = 0.1);
-    noise0 = tf.random.normal(shape = (FLAGS.batch_size, 32,32,1), stddev = 0.1);
+    batch_size = real_gaussian0.shape[0];
+    noise2 = tf.random.normal(shape = (batch_size, 100), stddev = 0.1);
+    noise1 = tf.random.normal(shape = (batch_size, 16,16,1), stddev = 0.1);
+    noise0 = tf.random.normal(shape = (batch_size, 32,32,1), stddev = 0.1);
     with tf.GradientTape(persistent = True) as tape:
       fake_gaussian2 = gen2(noise2);
       fake_laplacian1 = gen1([noise1, real_gaussian1]);
