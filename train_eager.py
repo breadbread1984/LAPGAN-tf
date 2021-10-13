@@ -79,9 +79,9 @@ def main(unused_argv):
       g1_loss = tf.keras.losses.BinaryCrossentropy(from_logits = False)(tf.ones_like(fake_disc1), fake_disc1);
       g0_loss = tf.keras.losses.BinaryCrossentropy(from_logits = False)(tf.ones_like(fake_disc0), fake_disc0);
     # train disc
-    d2_grads = tape.gradients(d2_loss, disc2.trainable_variables);
-    d1_grads = tape.gradients(d1_loss, disc1.trainable_variables);
-    d0_grads = tape.gradients(d0_loss, disc0.trainable_variables);
+    d2_grads = tape.gradient(d2_loss, disc2.trainable_variables);
+    d1_grads = tape.gradient(d1_loss, disc1.trainable_variables);
+    d0_grads = tape.gradient(d0_loss, disc0.trainable_variables);
     optimizer.apply_gradients(zip(d2_grads + d1_grads + d0_grads, disc2.trainable_variables + disc1.trainable_variables + disc0.trainable_variables));
     disc0_loss.update_state(d0_loss);
     disc1_loss.update_state(d1_loss);
