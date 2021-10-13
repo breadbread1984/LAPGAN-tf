@@ -96,9 +96,9 @@ def main(unused_argv):
       gen0_loss.update_state(g0_loss);
       gen1_loss.update_state(g1_loss);
       gen2_loss.update_state(g2_loss);
-    if tf.equal(optimizer.iterations % FLAGS.checkpoint_steps, 0):
+    if tf.equal(optimizer.iterations % FLAGS.checkpoint_steps, 1):
       checkpoint.save(join(FLAGS.checkpoint, 'ckpt'));
-    if tf.equal(optimizer.iterations % FLAGS.eval_steps, 0):
+    if tf.equal(optimizer.iterations % FLAGS.eval_steps, 1):
       lapgan = LAPGAN(gen2 = gen2, gen1 = gen1, gen0 = gen0);
       noise2 = np.random.normal(size = (1,100), scale = 0.1);
       noise1 = np.random.normal(size = (1, 16,16,1), scale = 0.1);
