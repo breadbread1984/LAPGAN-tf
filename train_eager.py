@@ -90,7 +90,7 @@ def main(unused_argv):
     if optimizer.iterations % FLAGS.disc_train_steps == 0:
       g2_grads = tape.gradient(g2_loss, gen2.trainable_variables);
       g1_grads = tape.gradient(g1_loss, gen1.trainable_variables);
-      g0_grads = tape.gradeint(g0_loss, gen0.trainable_variables);
+      g0_grads = tape.gradient(g0_loss, gen0.trainable_variables);
       optimizer.apply_gradient(zip(g2_grads + g1_grads + g0_grads, gen2.trainable_variables + gen1.trainable_variables + gen0.trainable_variables));
       gen0_loss.update_state(g0_loss);
       gen1_loss.update_state(g1_loss);
