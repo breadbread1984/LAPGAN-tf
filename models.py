@@ -113,17 +113,20 @@ def LAPGAN(gen2 = None, gen1 = None, gen0 = None):
   if gen2 is None:
     fake_gaussian2 = GeneratorTwo()(noise2); # fake_gaussian2.shape = (batch, 8, 8, 3)
   else:
+    gen2._name = 'gen2';
     fake_gaussian2 = gen2(noise2); # fake_gaussian2.shape = (batch, 8, 8, 3)
   fake_gaussian2 = PyrUp(3)(fake_gaussian2); # fake_gaussian2.shape = (batch, 16, 16, 3)
   if gen1 is None:
     fake_laplacian1 = GeneratorOne()([noise1, fake_gaussian2]); # fake_laplacian1.shape = (batch, 16, 16, 3)
   else:
+    gen1._name = 'gen1';
     fake_laplacian1 = gen1([noise1, fake_gaussian2]); # fake_laplacian1.shape = (batch, 16, 16, 3)
   fake_gaussian1 = tf.keras.layers.Add()([fake_laplacian1, fake_gaussian2]); # fake_gaussian1.shape = (batch, 16, 16, 3)
   fake_gaussian1 = PyrUp(3)(fake_gaussian1); # fake_gaussian1.shape = (batch, 32, 32, 3)
   if gen0 is None:
     fake_laplacian0 = GeneratorZero()([noise0, fake_gaussian1]); # fake_laplacian0.shape = (batch, 32, 32, 3)
   else:
+    gen0._name = 'gen0';
     fake_laplacian0 = gen0([noise0, fake_gaussian1]); # fake_laplacian0.shape = (batch, 32, 32, 3)
   fake_gaussian0 = tf.keras.layers.Add()([fake_laplacian0, fake_gaussian1]); # fake_gaussian0.shape = (batch, 32, 32, 3)
   return tf.keras.Model(inputs = (noise2, noise1, noise0), outputs = fake_gaussian0);
